@@ -1,0 +1,49 @@
+{
+	"name": "@simiancreative/agent-harness",
+	"version": "0.1.0",
+	"description": "A reusable, product-agnostic Temporal agent harness: the agent IS a workflow, the model call and every tool are activities. Conversation history, tool-call state, and pending approvals live in durable, replay-safe workflow state.",
+	"type": "module",
+	"license": "Apache-2.0",
+	"sideEffects": false,
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/rossnelson/grove.git",
+		"directory": "sdk/packages/agent-harness"
+	},
+	"exports": {
+		"./workflow": {
+			"types": "./dist/workflow/index.d.ts",
+			"import": "./dist/workflow/index.js"
+		},
+		"./activities-contract": {
+			"types": "./dist/activities-contract/index.d.ts",
+			"import": "./dist/activities-contract/index.js"
+		}
+	},
+	"files": [
+		"dist",
+		"src"
+	],
+	"scripts": {
+		"build": "tsc -p tsconfig.build.json",
+		"prepare": "tsc -p tsconfig.build.json",
+		"lint": "eslint .",
+		"test": "vitest run",
+		"test:watch": "vitest"
+	},
+	"peerDependencies": {
+		"@temporalio/workflow": "^1.17.0"
+	},
+	"devDependencies": {
+		"@eslint/js": "^10.0.0",
+		"@types/node": "^22",
+		"@temporalio/common": "^1.17.2",
+		"@temporalio/testing": "^1.17.2",
+		"@temporalio/worker": "^1.17.2",
+		"@temporalio/workflow": "^1.17.2",
+		"eslint": "^10.2.0",
+		"typescript": "^6.0.2",
+		"typescript-eslint": "^8.58.1",
+		"vitest": "^4.1.8"
+	}
+}

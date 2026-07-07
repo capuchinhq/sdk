@@ -1,0 +1,12 @@
+{
+	"name": "grove-sdk",
+	"private": true,
+	"type": "module",
+	"packageManager": "pnpm@10.28.2",
+	"description": "Grove — open-source SDK for durable AI agents (workspace root). See packages/*.",
+	"scripts": {
+		"build": "pnpm -r build",
+		"test": "pnpm -r test",
+		"lint": "pnpm -r lint"
+	}
+}
