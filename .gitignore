@@ -1,0 +1,5 @@
+# build artifact
+/capuchin
+
+# local dev state (Temporal SQLite persistence — delete for a clean slate)
+.capuchin/
