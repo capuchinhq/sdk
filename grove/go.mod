@@ -1,4 +1,4 @@
-module github.com/rossnelson/grove-sdk/cli
+module github.com/rossnelson/grove-sdk/grove
 
 go 1.24
 

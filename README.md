@@ -31,11 +31,44 @@ The demo agent handles refunds: `lookupOrder` runs automatically, `issueRefund` 
 for your approval in the terminal. Kill `grove dev` while an approval is pending,
 restart it, approve — the conversation resumes exactly where it was. That's the point.
 
+## Write your own agent
+
+```sh
+grove init my-agent && cd my-agent
+grove dev     # builds and runs YOUR worker, hot reload on save
+grove chat    # talk to it (another terminal)
+```
+
+An agent is tools + a prompt, in plain Go:
+
+```go
+var issueRefund = grove.Tool{
+	Name:          "issueRefund",
+	Input:         grove.Schema{"orderId": "string", "amountCents": "number"},
+	NeedsApproval: true, // pauses durably for a human
+	Run: func(a grove.Args, ctx grove.Ctx) (string, error) {
+		return refund(a.String("orderId"), a.Float("amountCents"))
+	},
+}
+
+var billing = grove.Agent{
+	Name:   "billing",
+	System: "You handle billing disputes.",
+	Tools:  grove.Tools{issueRefund},
+}
+
+func main() { log.Fatal(grove.Serve(billing)) }
+```
+
+Durability, the approval gate, replayable history, and the event stream are inherited —
+your code is just the tools and the prompt. Building your own agent needs Go 1.24+
+(`go.dev/dl`); the built-in demo doesn't.
+
 ## Layout
 
 | Path | What |
 |---|---|
-| `cli/` | The `grove` CLI + Go agent harness (Go-first platform) |
+| `grove/` | The Go SDK (`github.com/rossnelson/grove-sdk/grove`) and the `grove` CLI (`grove/cmd/grove`) |
 | `packages/agent-harness` | TypeScript agent harness (the TS SDK) |
 
 ## Development status

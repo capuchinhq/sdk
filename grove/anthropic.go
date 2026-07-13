@@ -1,4 +1,4 @@
-package main
+package grove
 
 import (
 	"context"
@@ -23,8 +23,9 @@ func anthropicConfigured() bool {
 	return os.Getenv("ANTHROPIC_API_KEY") != "" || os.Getenv("ANTHROPIC_AUTH_TOKEN") != ""
 }
 
-// activeModelLabel — what the `grove dev` banner shows.
-func activeModelLabel() string {
+// ActiveModelLabel describes which model adapter the current environment selects —
+// what the `grove dev` banner shows.
+func ActiveModelLabel() string {
 	switch os.Getenv("GROVE_MODEL") {
 	case "mock":
 		return "mock (forced via GROVE_MODEL=mock)"

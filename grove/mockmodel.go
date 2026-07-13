@@ -1,4 +1,4 @@
-package main
+package grove
 
 import (
 	"encoding/json"

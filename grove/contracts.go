@@ -1,4 +1,4 @@
-package main
+package grove
 
 // Contracts — the language-neutral JSON shapes, ported from the TS harness
 // (activities-contract). Everything here crosses the workflow/activity boundary and
@@ -66,6 +66,15 @@ func approvalRequired(p ApprovalPolicy, tool string) bool {
 	default: // "auto"
 		return false
 	}
+}
+
+// StartInput starts a conversation: which registered agent (empty = the worker's
+// default), plus the conversation id. The workflow resolves the agent's full config
+// through the getAgentConfig activity as its first step, which pins the config in
+// durable history — replay stays deterministic even after the worker's code changes.
+type StartInput struct {
+	Agent          string `json:"agent,omitempty"`
+	ConversationID string `json:"conversationId"`
 }
 
 // AgentConfig is the uniform agent input contract: tools + a prompt.

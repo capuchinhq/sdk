@@ -1,4 +1,4 @@
-package main
+package grove
 
 import (
 	"time"
@@ -12,27 +12,23 @@ const (
 	defaultApprovalTimeout = 24 * time.Hour
 )
 
-// AgentWorkflow — the agent loop as a durable Temporal workflow (the Go port of the
+// agentWorkflow — the agent loop as a durable Temporal workflow (the Go port of the
 // TS harness's agentWorkflow). Conversation transcript, the event log, and pending
 // approvals live in replay-safe workflow state; the model call and every tool run
 // are activities. The approval wait is a workflow Await — it burns no activity
 // timeout while a human decides, and it survives worker restarts (this is the
 // durability demo: kill `grove dev` at the approval prompt, restart, approve).
 //
+// The input is just {agent, conversationId}; the full AgentConfig comes from the
+// worker's registry via the getAgentConfig activity, recorded in history so replay
+// never re-reads live code.
+//
 // TODO: continue-as-new for very long conversations (history growth is unbounded).
-func AgentWorkflow(ctx workflow.Context, config AgentConfig) (AgentState, error) {
+func agentWorkflow(ctx workflow.Context, start StartInput) (AgentState, error) {
 	state := AgentState{
-		ConversationID:   config.ConversationID,
+		ConversationID:   start.ConversationID,
 		Status:           "idle",
 		PendingApprovals: []PendingApproval{},
-	}
-	maxTurns := config.MaxTurns
-	if maxTurns == 0 {
-		maxTurns = defaultMaxTurns
-	}
-	approvalTimeout := defaultApprovalTimeout
-	if config.ApprovalTimeoutMs > 0 {
-		approvalTimeout = time.Duration(config.ApprovalTimeoutMs) * time.Millisecond
 	}
 
 	var pendingMsgs []string
@@ -81,6 +77,28 @@ func AgentWorkflow(ctx workflow.Context, config AgentConfig) (AgentState, error)
 		cancelCh.Receive(gctx, nil)
 		cancelled = true
 	})
+
+	// Resolve the agent config AFTER the handlers are up (a client may send its first
+	// userMessage the instant the workflow starts — handlers must already exist). The
+	// activity result is recorded in history, so replay never re-reads live code.
+	cfgCtx := workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Second,
+		RetryPolicy:         &temporal.RetryPolicy{MaximumAttempts: 3},
+	})
+	var config AgentConfig
+	if err := workflow.ExecuteActivity(cfgCtx, "getAgentConfig", start.Agent).Get(ctx, &config); err != nil {
+		return state, err
+	}
+	config.ConversationID = start.ConversationID
+
+	maxTurns := config.MaxTurns
+	if maxTurns == 0 {
+		maxTurns = defaultMaxTurns
+	}
+	approvalTimeout := defaultApprovalTimeout
+	if config.ApprovalTimeoutMs > 0 {
+		approvalTimeout = time.Duration(config.ApprovalTimeoutMs) * time.Millisecond
+	}
 
 	modelCtx := workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
 		StartToCloseTimeout: 10 * time.Minute, // a model turn is slow
