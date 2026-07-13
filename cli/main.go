@@ -18,12 +18,17 @@ import (
 
 const devAddr = "127.0.0.1:7233"
 
+// version is injected at release time via -ldflags "-X main.version=X.Y.Z".
+var version = "dev"
+
 func main() {
 	cmd := ""
 	if len(os.Args) > 1 {
 		cmd = os.Args[1]
 	}
 	switch cmd {
+	case "version", "--version", "-v":
+		fmt.Println("grove " + version)
 	case "dev":
 		if err := dev(); err != nil {
 			fmt.Fprintln(os.Stderr, "error:", err)
@@ -49,6 +54,7 @@ func help() {
 Usage:
   grove dev      Start the whole local stack: Temporal + UI + worker (mock model)
   grove chat     Talk to the refund demo agent (needs 'grove dev' running)
+  grove version  Print the CLI version
   grove --help   Show this help
 `)
 }
