@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strings"
 )
 
@@ -36,6 +37,21 @@ func initCmd(args []string) error {
 		".gitignore": ".capuchin/\n",
 		"README.md":  fmt.Sprintf(templateReadme, module),
 	}
+
+	// Never overwrite anything: a bare `capuchin init` in the wrong directory (a
+	// projects folder, a dotfiles repo, ...) must not clobber files that were there.
+	var conflicts []string
+	for name := range files {
+		if _, err := os.Stat(filepath.Join(dir, name)); err == nil {
+			conflicts = append(conflicts, name)
+		}
+	}
+	if len(conflicts) > 0 {
+		sort.Strings(conflicts)
+		return fmt.Errorf("%s already contains %s — refusing to overwrite; scaffold into a fresh directory: capuchin init <name>", abs, strings.Join(conflicts, ", "))
+	}
+
+	fmt.Println("scaffolding agent project in", abs)
 	for name, content := range files {
 		if err := os.WriteFile(filepath.Join(dir, name), []byte(content), 0o644); err != nil {
 			return err
