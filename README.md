@@ -11,7 +11,7 @@ performed tasks for coins. A [Simian Creative](https://simiancreative.com) proje
 ## Install
 
 ```sh
-brew install capuchinhq/tap/capuchin
+brew install capuchinhq/tap/sdk
 ```
 
 Or grab a binary from [Releases](https://github.com/capuchinhq/sdk/releases). No npm.
